@@ -2,13 +2,14 @@ import spacebrew.*;
 
 PImage soli;
 PImage crd;
-PVector pos;
-PVector vel;
-float grav;
+PVector kPos;
+PVector kVel;
+float kScale;
+float kGrav;
 
 // Spacebrew stuff
 String server = "sandbox.spacebrew.cc";
-String name   = "ExquisiteCorpse_YOUR_NAME_HERE!";
+String name   = "ExquisiteCorpse_BERNARDO_ANTHONY_BOBBY";
 String desc   = "Some stuff";
 
 Spacebrew sb;
@@ -21,7 +22,7 @@ int appHeight = 720;
 // EC stuff
 int corpseStarted   = 0;
 boolean bDrawing    = false;
-boolean bNeedToClear = false;
+boolean bNeedToClear = true;
 boolean play2=false;
 
 //Part 3 Variables
@@ -31,6 +32,15 @@ int nbPts;
 final static int RADIUS = 30;
 boolean isInitialized;
 
+//bernardo variables (all start with bs)
+int bsFormResolution = 15;
+float bsStepSize = 2;
+float bsDistortionFactor = 1;
+float bsInitRadius = 120;
+float bsCenterX, bsCenterY;
+float[] bsX = new float[bsFormResolution];
+float[] bsY = new float[bsFormResolution];
+
 void setup() {
   size( appWidth, appHeight );
   smooth();
@@ -38,18 +48,37 @@ void setup() {
   sb = new Spacebrew(this);
   sb.addPublish("doneExquisite", "boolean", false);
   sb.addSubscribe("startExquisite", "boolean");
+  
+  sb.addSubscribe("remoteReceiveNoise", "range");
+  sb.addSubscribe("remoteRecieveVictory", "range");
 
   // add any of your own subscribers here!
 
   sb.connect( server, name, desc );
 
+  //initializing bernardo's variables
+  bsCenterX = width/6; 
+  bsCenterY = height/2;
+  float bsAngle = radians(360/float(bsFormResolution));
+  for (int i=0; i<bsFormResolution; i++) {
+    bsX[i] = cos(bsAngle*i) * bsInitRadius;
+    bsY[i] = sin(bsAngle*i) * bsInitRadius;
+  }
+
+  //initializing anthony's variables
   soli = loadImage("soli.png");
   crd  = loadImage("crd.png");
+
   pos = new PVector(685, 8);
   vel = new PVector(-5, -1);
   grav = .6;
   
   isInitialized = false;
+
+  kPos = new PVector(685, 8);
+  kVel = new PVector(-5, -1);
+  kGrav = .6;
+  
   bDrawing=true;
   
 }
@@ -75,24 +104,53 @@ void initialize() {
 }
 
 void draw() {
-  // this will make it only render to screen when in EC draw mode
+    // this will make it only render to screen when in EC draw mode
   if (!bDrawing) return;
 
   // blank out your background once
   if ( bNeedToClear ) {
     bNeedToClear = false;
-    background(0); // feel free to change the background color!
+    background(255); // feel free to change the background color!
   }
 
-
-  // ---- start person 1 ---- //
-  
+  // ---- start bernardo ---- //
   if ( millis() - corpseStarted < 10000 ) {
+    
     noFill();
     stroke(255);
     rect(0, 0, width / 3.0, height );
+
+    for (int i=0; i<bsFormResolution; i++) {
+      bsX[i] += random(-bsStepSize, bsStepSize);
+      bsY[i] += random(-bsStepSize, bsStepSize);
+      
+      if (bsX[i]+bsCenterX >= width/3) bsX[i] = width/3-bsCenterX-20;
+      if (bsX[i]+bsCenterX <= 0) bsX[i] = 0+bsCenterX+20;
+      
+      if (bsY[i]+bsCenterY >= height) bsY[i] = height-bsCenterY-20;
+      if (bsY[i]+bsCenterY <= 0) bsY[i] = 0+bsCenterY+20;
+      
+    }
+
+    strokeWeight(0.75);
+    stroke (0, 30);
+
+    beginShape();
+    // start controlpoint
+    curveVertex(bsX[bsFormResolution-1]+bsCenterX, bsY[bsFormResolution-1]+bsCenterY);
+
+    // only these points are drawn
+    for (int i=0; i<bsFormResolution; i++) {
+      curveVertex(bsX[i]+bsCenterX, bsY[i]+bsCenterY);
+    }
+    curveVertex(bsX[0]+bsCenterX, bsY[0]+bsCenterY);
     
-    // ---- start person 2 ---- //
+    // end controlpoint
+    curveVertex(bsX[1]+bsCenterX, bsY[1]+bsCenterY);
+    endShape();
+
+
+    // ---- start anthony ---- //
   } 
   else if ( millis() - corpseStarted < 20000 ) {
 
@@ -103,26 +161,26 @@ void draw() {
       image(soli, width/3, 0);
     }
     if (play2) {
-      image(crd, pos.x, pos.y);
-      pos.x+=vel.x;
-      pos.y+=vel.y;
-      vel.y+=grav;
+      image(crd, kPos.x, kPos.y);
+      kPos.x+=kVel.x*kScale;
+      kPos.y+=kVel.y*kScale;
+      kVel.y+=kGrav;
 
-      if (pos.x<=width/3) {
-        pos.x=(width/3)+1;
-        vel.x*=-.9;
+      if (kPos.x<=width/3) {
+        kPos.x=(width/3)+1;
+        kVel.x*=-.9;
       }
-      if (pos.x+crd.width>=2*width/3) {
-        pos.x=(2*width/3)-crd.width-1;
-        vel.x*=-.9;
+      if (kPos.x+crd.width>=2*width/3) {
+        kPos.x=(2*width/3)-crd.width-1;
+        kVel.x*=-.9;
       }
-      if (pos.y<=0) {
-        pos.y=1;
-        vel.y*=-.9;
+      if (kPos.y<=0) {
+        kPos.y=1;
+        kVel.y*=-.9;
       }
-      if (pos.y+crd.height>=height) {
-        pos.y=height-crd.height-1;
-        vel.y*=-.9;
+      if (kPos.y+crd.height>=height) {
+        kPos.y=height-crd.height-1;
+        kVel.y*=-.9;
       }
       noFill();
       stroke(255);    
@@ -190,6 +248,11 @@ void onBooleanMessage( String name, boolean value ) {
 }
 
 void onRangeMessage( String name, int value ) {
+  
+  println("got range message " + name + " : " + value);
+  bsStepSize = map (value, 0, 1023, 0, 20);
+  kScale = value/100;
+  
 }
 
 void onStringMessage( String name, String value ) {
