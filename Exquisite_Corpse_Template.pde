@@ -4,6 +4,7 @@ PImage soli;
 PImage crd;
 PVector kPos;
 PVector kVel;
+float kScale;
 float kGrav;
 
 // Spacebrew stuff
@@ -41,6 +42,7 @@ void setup() {
   sb.addSubscribe("startExquisite", "boolean");
   
   sb.addSubscribe("remoteReceiveNoise", "range");
+  sb.addSubscribe("remoteRecieveVictory", "range");
 
   // add any of your own subscribers here!
 
@@ -61,7 +63,7 @@ void setup() {
   kPos = new PVector(685, 8);
   kVel = new PVector(-5, -1);
   kGrav = .6;
-
+  
   bDrawing=true;
 }
 
@@ -124,8 +126,8 @@ void draw() {
     }
     if (play2) {
       image(crd, kPos.x, kPos.y);
-      kPos.x+=kVel.x;
-      kPos.y+=kVel.y;
+      kPos.x+=kVel.x*kScale;
+      kPos.y+=kVel.y*kScale;
       kVel.y+=kGrav;
 
       if (kPos.x<=width/3) {
@@ -184,6 +186,7 @@ void onRangeMessage( String name, int value ) {
   
   println("got range message " + name + " : " + value);
   bsStepSize = map (value, 0, 1023, 0, 20);
+  kScale = value/100;
   
 }
 
