@@ -3,7 +3,7 @@ import spacebrew.*;
 PImage soli;
 PImage crd;
 PVector kPos;
-PVector kVel;
+PVector kVel ;
 float kScale;
 float kGrav;
 
@@ -31,6 +31,7 @@ int[] nbConnex;
 int nbPts;
 final static int RADIUS = 30;
 boolean isInitialized;
+  float dotRange;
 
 //bernardo variables (all start with bs)
 int bsFormResolution = 15;
@@ -48,7 +49,7 @@ void setup() {
   sb = new Spacebrew(this);
   sb.addPublish("doneExquisite", "boolean", false);
   sb.addSubscribe("startExquisite", "boolean");
-  
+
   sb.addSubscribe("remoteReceiveNoise", "range");
   sb.addSubscribe("remoteRecieveVictory", "range");
 
@@ -69,18 +70,13 @@ void setup() {
   soli = loadImage("soli.png");
   crd  = loadImage("crd.png");
 
-  pos = new PVector(685, 8);
-  vel = new PVector(-5, -1);
-  grav = .6;
-  
   isInitialized = false;
 
   kPos = new PVector(685, 8);
   kVel = new PVector(-5, -1);
   kGrav = .6;
-  
+
   bDrawing=true;
-  
 }
 void initialize() {
   nbPts = int(random(20, 40));
@@ -104,7 +100,7 @@ void initialize() {
 }
 
 void draw() {
-    // this will make it only render to screen when in EC draw mode
+  // this will make it only render to screen when in EC draw mode
   if (!bDrawing) return;
 
   // blank out your background once
@@ -115,7 +111,7 @@ void draw() {
 
   // ---- start bernardo ---- //
   if ( millis() - corpseStarted < 10000 ) {
-    
+
     noFill();
     stroke(255);
     rect(0, 0, width / 3.0, height );
@@ -123,13 +119,12 @@ void draw() {
     for (int i=0; i<bsFormResolution; i++) {
       bsX[i] += random(-bsStepSize, bsStepSize);
       bsY[i] += random(-bsStepSize, bsStepSize);
-      
+
       if (bsX[i]+bsCenterX >= width/3) bsX[i] = width/3-bsCenterX-20;
       if (bsX[i]+bsCenterX <= 0) bsX[i] = 0+bsCenterX+20;
-      
+
       if (bsY[i]+bsCenterY >= height) bsY[i] = height-bsCenterY-20;
       if (bsY[i]+bsCenterY <= 0) bsY[i] = 0+bsCenterY+20;
-      
     }
 
     strokeWeight(0.75);
@@ -144,7 +139,7 @@ void draw() {
       curveVertex(bsX[i]+bsCenterX, bsY[i]+bsCenterY);
     }
     curveVertex(bsX[0]+bsCenterX, bsY[0]+bsCenterY);
-    
+
     // end controlpoint
     curveVertex(bsX[1]+bsCenterX, bsY[1]+bsCenterY);
     endShape();
@@ -193,15 +188,15 @@ void draw() {
   else if ( millis() - corpseStarted < 30000 ) {    
     fill(255, 255, 255, 50);
     rect(width * 2.0/ 3.0, 0, width / 3.0, height );
-    
-if (!isInitialized) {
-     initialize();
-     isInitialized = true;
+
+    if (!isInitialized) {
+      initialize();
+      isInitialized = true;
     }
     stroke(0, 50);
     for (int i=0; i<nbPts-1; i++) {
       for (int j=i+1; j<nbPts; j++) {
-        if (dist(x[i], y[i], x[j], y[j])<RADIUS+100) {
+        if (dist(x[i], y[i], x[j], y[j])<RADIUS+ dotRange) {
           line(x[i], y[i], x[j], y[j]);
           nbConnex[i]++;
           nbConnex[j]++;
@@ -248,11 +243,11 @@ void onBooleanMessage( String name, boolean value ) {
 }
 
 void onRangeMessage( String name, int value ) {
-  
+
   println("got range message " + name + " : " + value);
+  dotRange = map (value, 0, 1023, 10, 100);
   bsStepSize = map (value, 0, 1023, 0, 20);
   kScale = value/100;
-  
 }
 
 void onStringMessage( String name, String value ) {
