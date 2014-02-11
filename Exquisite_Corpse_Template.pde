@@ -2,9 +2,9 @@ import spacebrew.*;
 
 PImage soli;
 PImage crd;
-PVector pos;
-PVector vel;
-float grav;
+PVector kPos;
+PVector kVel;
+float kGrav;
 
 // Spacebrew stuff
 String server = "sandbox.spacebrew.cc";
@@ -58,9 +58,9 @@ void setup() {
   //initializing anthony's variables
   soli = loadImage("soli.png");
   crd  = loadImage("crd.png");
-  pos = new PVector(685, 8);
-  vel = new PVector(-5, -1);
-  grav = .6;
+  kPos = new PVector(685, 8);
+  kVel = new PVector(-5, -1);
+  kGrav = .6;
 
   bDrawing=true;
 }
@@ -123,26 +123,26 @@ void draw() {
       image(soli, width/3, 0);
     }
     if (play2) {
-      image(crd, pos.x, pos.y);
-      pos.x+=vel.x;
-      pos.y+=vel.y;
-      vel.y+=grav;
+      image(crd, kPos.x, kPos.y);
+      kPos.x+=kVel.x;
+      kPos.y+=kVel.y;
+      kVel.y+=kGrav;
 
-      if (pos.x<=width/3) {
-        pos.x=(width/3)+1;
-        vel.x*=-.9;
+      if (kPos.x<=width/3) {
+        kPos.x=(width/3)+1;
+        kVel.x*=-.9;
       }
-      if (pos.x+crd.width>=2*width/3) {
-        pos.x=(2*width/3)-crd.width-1;
-        vel.x*=-.9;
+      if (kPos.x+crd.width>=2*width/3) {
+        kPos.x=(2*width/3)-crd.width-1;
+        kVel.x*=-.9;
       }
-      if (pos.y<=0) {
-        pos.y=1;
-        vel.y*=-.9;
+      if (kPos.y<=0) {
+        kPos.y=1;
+        kVel.y*=-.9;
       }
-      if (pos.y+crd.height>=height) {
-        pos.y=height-crd.height-1;
-        vel.y*=-.9;
+      if (kPos.y+crd.height>=height) {
+        kPos.y=height-crd.height-1;
+        kVel.y*=-.9;
       }
       noFill();
       stroke(255);    
